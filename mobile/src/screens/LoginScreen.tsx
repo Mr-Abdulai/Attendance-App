@@ -92,7 +92,7 @@ export default function LoginScreen({ onLogin }: LoginScreenProps) {
       Toast.show({
         type: 'error',
         text1: 'Error',
-        text2: error.response?.data?.error || 'An error occurred. Please try again.',
+        text2: error.response?.data?.error || error.message || 'An error occurred. Please try again.',
       });
     } finally {
       setLoading(false);

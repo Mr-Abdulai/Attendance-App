@@ -79,9 +79,9 @@ export async function markAttendance(req: AuthRequest, res: Response): Promise<v
   }
 
   // Verify location
-  // NOTE: Using 10000 meters (10km) for development (laptops have poor GPS accuracy)
+  // NOTE: Using 20000 meters (20km) for development (laptops have poor GPS accuracy)
   // In production with real GPS devices, change this to 10 meters
-  const maxDistance = process.env.NODE_ENV === 'development' ? 10000 : 10;
+  const maxDistance = process.env.NODE_ENV === 'development' ? 20000 : 10;
 
   console.log('Location verification:', {
     student: { latitude, longitude },

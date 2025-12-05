@@ -78,7 +78,7 @@ export default function CreateSession() {
     try {
       const position = await getLocation();
       const { latitude, longitude } = position.coords;
-      
+
       console.log('📍 Lecturer location obtained:', {
         latitude,
         longitude,

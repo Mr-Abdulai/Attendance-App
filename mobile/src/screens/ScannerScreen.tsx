@@ -13,7 +13,7 @@ import {
   Card,
 } from 'react-native-paper';
 import Toast from 'react-native-toast-message';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useIsFocused } from '@react-navigation/native';
 import { attendanceService } from '../services/attendanceService';
 import { locationService } from '../services/locationService';
 
@@ -21,9 +21,18 @@ const { width, height } = Dimensions.get('window');
 
 export default function ScannerScreen() {
   const navigation = useNavigation();
+  const isFocused = useIsFocused();
   const [permission, requestPermission] = useCameraPermissions();
   const [scanned, setScanned] = useState(false);
   const [processing, setProcessing] = useState(false);
+
+  // Reset scanner when screen is focused
+  useEffect(() => {
+    if (isFocused) {
+      setScanned(false);
+      setProcessing(false);
+    }
+  }, [isFocused]);
 
   useEffect(() => {
     if (permission && !permission.granted) {

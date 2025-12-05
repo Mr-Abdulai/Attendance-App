@@ -25,6 +25,7 @@ import { format } from 'date-fns';
 import { useAuth } from '../hooks/useAuth';
 import { sessionService, Session, Attendance } from '../services/sessionService';
 import { useSocket } from '../hooks/useSocket';
+import { QRCodeSVG } from 'qrcode.react';
 
 export default function SessionDetail() {
   const { id } = useParams<{ id: string }>();
@@ -193,6 +194,20 @@ export default function SessionDetail() {
           Attendance Records ({session.attendance?.length || 0})
         </Typography>
       </Paper>
+
+      {session.status === 'ACTIVE' && (
+        <Paper sx={{ p: 3, mb: 3, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          <Typography variant="h6" gutterBottom>
+            Session QR Code
+          </Typography>
+          <Box sx={{ p: 2, bgcolor: 'white', borderRadius: 2, border: '1px solid #eee' }}>
+            <QRCodeSVG value={session.qrCode} size={256} />
+          </Box>
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
+            Students can scan this code to mark attendance
+          </Typography>
+        </Paper>
+      )}
 
       {session.attendance && session.attendance.length > 0 ? (
         <TableContainer component={Paper}>

@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-// Use proxy in development (via vite.config.ts) or direct URL
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
+// Use direct URL to avoid proxy issues
+const API_BASE_URL = 'http://127.0.0.1:5000/api';
 
 console.log('API Base URL:', API_BASE_URL);
 console.log('Environment:', import.meta.env.MODE);

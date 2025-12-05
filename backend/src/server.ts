@@ -55,9 +55,10 @@ app.use((req, res) => {
 
 const PORT = env.PORT || 5000;
 
-server.listen(PORT, () => {
+server.listen(Number(PORT), '0.0.0.0', () => {
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`📱 Environment: ${env.NODE_ENV}`);
+  console.log(`🌐 Listening on all interfaces (0.0.0.0)`);
 });
 
 export default app;
