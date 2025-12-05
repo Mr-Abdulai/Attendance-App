@@ -1,0 +1,89 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String
+  role      UserRole @default(STUDENT)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  sessionsAsLecturer Session[]     @relation("LecturerSessions")
+  attendanceRecords  Attendance[]
+
+  @@map("users")
+}
+
+enum UserRole {
+  STUDENT
+  LECTURER
+  ADMIN
+}
+
+model Session {
+  id        String      @id @default(cuid())
+  lecturerId String
+  name      String
+  qrCode    String      @unique
+  latitude  Float
+  longitude Float
+  startTime DateTime    @default(now())
+  endTime   DateTime?
+  duration  Int         @default(300) // 5 minutes in seconds
+  status    SessionStatus @default(ACTIVE)
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+  deletedAt DateTime?
+
+  // Relations
+  lecturer   User         @relation("LecturerSessions", fields: [lecturerId], references: [id], onDelete: Cascade)
+  attendance Attendance[]
+
+  @@map("sessions")
+}
+
+enum SessionStatus {
+  ACTIVE
+  ENDED
+  EXPIRED
+}
+
+model Attendance {
+  id        String   @id @default(cuid())
+  sessionId String
+  studentId String
+  scannedAt DateTime @default(now())
+  latitude  Float
+  longitude Float
+  distance  Float    // Distance in meters
+  status    AttendanceStatus @default(VALID)
+  createdAt DateTime @default(now())
+
+  // Relations
+  session Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  student User    @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([sessionId, studentId])
+  @@map("attendance")
+}
+
+enum AttendanceStatus {
+  VALID
+  INVALID
+  OUT_OF_RANGE
+  EXPIRED
+  DUPLICATE
+}
+
