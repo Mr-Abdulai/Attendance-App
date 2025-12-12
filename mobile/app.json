@@ -31,7 +31,18 @@
       "permissions": [
         "CAMERA",
         "ACCESS_FINE_LOCATION",
-        "ACCESS_COARSE_LOCATION"
+        "ACCESS_COARSE_LOCATION",
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "CAMERA",
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION"
       ],
       "usesCleartextTraffic": true
     },
@@ -53,7 +64,17 @@
       ]
     ],
     "extra": {
-      "apiUrl": "http://10.218.212.107:5000/api"
+      "apiUrl": "https://attendance-api-htat.onrender.com/api",
+      "eas": {
+        "projectId": "9b3ce9d0-bcc5-4d8c-a69b-f119901ad0f3"
+      }
+    },
+    "owner": "mrabdulai",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/9b3ce9d0-bcc5-4d8c-a69b-f119901ad0f3"
     }
   }
 }
