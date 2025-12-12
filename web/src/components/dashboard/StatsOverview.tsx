@@ -15,18 +15,15 @@ import {
     BarChart as BarIcon,
 } from '@mui/icons-material';
 import {
-    LineChart,
-    Line,
-    XAxis,
-    YAxis,
-    CartesianGrid,
-    Tooltip,
-    ResponsiveContainer,
     AreaChart,
     Area,
     BarChart,
     Bar,
-    Legend
+    XAxis,
+    YAxis,
+    CartesianGrid,
+    Tooltip,
+    ResponsiveContainer
 } from 'recharts';
 import { Session } from '../../services/sessionService';
 import { format, parseISO } from 'date-fns';
@@ -72,7 +69,7 @@ export default function StatsOverview({ sessions }: StatsOverviewProps) {
             fullDate: format(parseISO(s.createdAt), 'PP')
         }));
 
-    const StatCard = ({ title, value, icon, color, gradient }: any) => (
+    const StatCard = ({ title, value, icon, color }: any) => (
         <Paper
             elevation={0}
             sx={{

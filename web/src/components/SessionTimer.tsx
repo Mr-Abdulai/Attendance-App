@@ -5,9 +5,10 @@ import { AccessTime as TimeIcon } from '@mui/icons-material';
 interface SessionTimerProps {
     startTime: string | Date;
     duration: number; // in seconds
+    onExpire?: () => void;
 }
 
-export default function SessionTimer({ startTime, duration }: SessionTimerProps) {
+export default function SessionTimer({ startTime, duration, onExpire }: SessionTimerProps) {
     const [timeLeft, setTimeLeft] = useState('');
     const [isExpired, setIsExpired] = useState(false);
 
@@ -22,6 +23,7 @@ export default function SessionTimer({ startTime, duration }: SessionTimerProps)
             if (distance < 0) {
                 setIsExpired(true);
                 setTimeLeft('Session Ended');
+                if (onExpire) onExpire();
                 return;
             }
 
@@ -35,7 +37,7 @@ export default function SessionTimer({ startTime, duration }: SessionTimerProps)
         const timer = setInterval(updateTimer, 1000);
 
         return () => clearInterval(timer);
-    }, [startTime, duration]);
+    }, [startTime, duration, onExpire]);
 
     if (isExpired) return null;
 

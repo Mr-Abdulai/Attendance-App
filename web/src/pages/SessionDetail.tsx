@@ -13,14 +13,14 @@ import {
   TableHead,
   TableRow,
   Chip,
-  IconButton,
+
   Alert,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
   TextField,
-  Tooltip,
+
   Snackbar,
   AlertColor,
 } from '@mui/material';
@@ -39,7 +39,7 @@ import SessionTimer from '../components/SessionTimer';
 export default function SessionDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  // const { user } = useAuth();
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');

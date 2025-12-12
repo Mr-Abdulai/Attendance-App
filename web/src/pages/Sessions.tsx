@@ -19,8 +19,8 @@ export default function Sessions() {
     const navigate = useNavigate();
     const [sessions, setSessions] = useState<Session[]>([]);
     const [loading, setLoading] = useState(true);
-    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-    const [sessionToDelete, setSessionToDelete] = useState<string | null>(null);
+    // const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    // const [sessionToDelete, setSessionToDelete] = useState<string | null>(null);
 
     // Re-using the delete dialog logic or importing it? 
     // For now, I'll allow viewing/duplicating. Deleting might need the dialog logic duplicated or moved to a context/component.

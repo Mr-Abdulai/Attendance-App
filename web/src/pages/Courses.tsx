@@ -16,14 +16,14 @@ import {
     Grid,
     Card,
     CardContent,
-    CardActions,
+
     Chip,
     IconButton,
     Menu,
     MenuItem,
     ListItemIcon,
     useTheme,
-    alpha,
+
     Paper,
 } from '@mui/material';
 import {
@@ -31,7 +31,7 @@ import {
     Book as ClassIcon,
     MoreVert as MoreVertIcon,
     Delete as DeleteIcon,
-    Edit as EditIcon,
+
     School as SchoolIcon,
 } from '@mui/icons-material';
 import { courseService, Course } from '../services/courseService';

@@ -105,7 +105,7 @@ export default function Dashboard() {
         <Paper sx={{ p: 3, borderRadius: 3 }}>
           <Typography variant="body2" color="text.secondary">Active Now</Typography>
           <Typography variant="h4" fontWeight="bold" color="success.main">
-            {sessions.filter(s => s.isActive).length}
+            {sessions.filter(s => s.status === 'ACTIVE').length}
           </Typography>
         </Paper>
         <Paper sx={{ p: 3, borderRadius: 3 }}>

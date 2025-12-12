@@ -9,7 +9,6 @@ import {
   Alert,
 } from '@mui/material';
 import { QRCodeSVG } from 'qrcode.react';
-import { formatDistanceToNow } from 'date-fns';
 import { sessionService } from '../services/sessionService';
 import { useSocket } from '../hooks/useSocket';
 

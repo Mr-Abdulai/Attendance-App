@@ -22,7 +22,7 @@ import { courseService } from '../services/courseService';
 import QRCodeDisplay from '../components/QRCodeDisplay';
 
 export default function CreateSession() {
-  const { user } = useAuth();
+  // const { user } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const duplicateId = searchParams.get('duplicate');
@@ -81,7 +81,7 @@ export default function CreateSession() {
 
         setCachedPosition(pos);
       })
-      .catch((err) => {
+      .catch(() => {
 
       });
   }, []);
