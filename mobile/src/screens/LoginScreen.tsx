@@ -12,6 +12,7 @@ import {
   Text,
   Card,
   ActivityIndicator,
+  useTheme,
 } from 'react-native-paper';
 import Toast from 'react-native-toast-message';
 import { authService } from '../services/authService';
@@ -22,6 +23,7 @@ interface LoginScreenProps {
 }
 
 export default function LoginScreen({ onLogin }: LoginScreenProps) {
+  const theme = useTheme();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -102,10 +104,10 @@ export default function LoginScreen({ onLogin }: LoginScreenProps) {
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={styles.container}
+      style={[styles.container, { backgroundColor: theme.colors.background }]}
     >
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        <Card style={styles.card}>
+        <Card style={[styles.card, { backgroundColor: theme.colors.elevation.level1 }]}>
           <Card.Content>
             <Text variant="headlineMedium" style={styles.title}>
               Attendance App
@@ -178,7 +180,6 @@ export default function LoginScreen({ onLogin }: LoginScreenProps) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
   },
   scrollContent: {
     flexGrow: 1,
@@ -187,6 +188,7 @@ const styles = StyleSheet.create({
   },
   card: {
     elevation: 4,
+    borderRadius: 16,
   },
   title: {
     textAlign: 'center',
@@ -196,7 +198,7 @@ const styles = StyleSheet.create({
   subtitle: {
     textAlign: 'center',
     marginBottom: 24,
-    color: '#666',
+    opacity: 0.7,
   },
   input: {
     marginBottom: 16,

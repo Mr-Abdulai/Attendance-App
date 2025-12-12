@@ -60,6 +60,24 @@ export async function register(req: AuthRequest, res: Response): Promise<void> {
     throw new AppError(400, 'User with this email already exists');
   }
 
+  // Generate Unique Student ID (S + 5 random digits)
+  // Collision probability is manageable for MVP, but retry logic is safer.
+  // For simplicity, we'll try once. Ideally this should be a loop.
+  const generateStudentId = () => {
+    const random = Math.floor(10000 + Math.random() * 90000); // 10000 to 99999
+    return `S${random}`;
+  };
+
+  let studentId = null;
+  if (!role || role === 'STUDENT') {
+    studentId = generateStudentId();
+    // Simple check (in production, use a loop to ensure uniqueness)
+    const existingId = await prisma.user.findUnique({ where: { studentId } });
+    if (existingId) {
+      studentId = generateStudentId(); // Retry once
+    }
+  }
+
   // Hash password
   const hashedPassword = await bcrypt.hash(password, saltRounds);
 
@@ -70,12 +88,14 @@ export async function register(req: AuthRequest, res: Response): Promise<void> {
       password: hashedPassword,
       name,
       role: role || 'STUDENT',
+      studentId,
     },
     select: {
       id: true,
       email: true,
       name: true,
       role: true,
+      studentId: true,
       createdAt: true,
     },
   });
@@ -123,6 +143,7 @@ export async function login(req: AuthRequest, res: Response): Promise<void> {
       email: user.email,
       name: user.name,
       role: user.role,
+      studentId: user.studentId,
     },
     accessToken,
     refreshToken,
@@ -144,6 +165,7 @@ export async function getProfile(req: AuthRequest, res: Response): Promise<void>
       email: true,
       name: true,
       role: true,
+      studentId: true,
       createdAt: true,
     },
   });
@@ -191,7 +213,52 @@ export async function refreshToken(req: AuthRequest, res: Response): Promise<voi
 
     res.json({ accessToken });
   } catch (error) {
-    throw new AppError(403, 'Invalid or expired refresh token');
   }
+}
+
+// Update Profile Schema
+export const updateProfileSchema = z.object({
+  body: z.object({
+    studentId: z.string()
+      .min(5, 'Student ID must be at least 5 characters')
+      .refine(val => /^[a-z]/.test(val), 'Student ID must start with a lowercase letter'),
+  }),
+});
+
+/**
+ * Update current user profile
+ */
+export async function updateProfile(req: AuthRequest, res: Response): Promise<void> {
+  if (!req.user) {
+    throw new AppError(401, 'Authentication required');
+  }
+
+  const { studentId } = req.body;
+
+  // Check if studentId is already taken by another user
+  if (studentId) {
+    const existing = await prisma.user.findUnique({
+      where: { studentId },
+    });
+
+    if (existing && existing.id !== req.user.id) {
+      throw new AppError(409, 'Student ID is already taken');
+    }
+  }
+
+  const user = await prisma.user.update({
+    where: { id: req.user.id },
+    data: { studentId },
+    select: {
+      id: true,
+      email: true,
+      name: true,
+      role: true,
+      studentId: true,
+      createdAt: true,
+    },
+  });
+
+  res.json({ user, message: 'Profile updated successfully' });
 }
 

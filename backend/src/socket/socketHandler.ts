@@ -60,6 +60,22 @@ export function initializeSocket(server: HTTPServer): SocketIOServer {
       });
     }
 
+    // Allow all users (including students) to join their personal room
+    socket.on('join-room', (roomId: string) => {
+      // Security check: ensure user can only join their own room
+      if (roomId === `user:${socket.data.user.id}`) {
+        socket.join(roomId);
+        console.log(`User ${socket.data.user.email} joined room ${roomId}`);
+      } else {
+        console.warn(`User ${socket.data.user.email} attempted to join unauthorized room ${roomId}`);
+      }
+    });
+
+    socket.on('leave-room', (roomId: string) => {
+      socket.leave(roomId);
+      console.log(`User ${socket.data.user.email} left room ${roomId}`);
+    });
+
     socket.on('disconnect', () => {
       console.log(`User disconnected: ${socket.data.user.email}`);
     });

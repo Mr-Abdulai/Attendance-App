@@ -10,6 +10,7 @@ import { initializeSocket } from './socket/socketHandler';
 import authRoutes from './routes/auth';
 import sessionRoutes from './routes/sessions';
 import attendanceRoutes from './routes/attendance';
+import courseRoutes from './routes/courses';
 
 const app = express();
 const server = createServer(app);
@@ -19,7 +20,7 @@ export const io = initializeSocket(server);
 
 // Middleware
 app.use(cors({
-  origin: env.CORS_ORIGIN.split(','),
+  origin: env.CORS_ORIGIN === '*' ? true : env.CORS_ORIGIN.split(','),
   credentials: true,
 }));
 
@@ -44,6 +45,7 @@ app.get('/health', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/sessions', sessionRoutes);
 app.use('/api/attendance', attendanceRoutes);
+app.use('/api/courses', courseRoutes);
 
 // Error handling
 app.use(errorHandler);

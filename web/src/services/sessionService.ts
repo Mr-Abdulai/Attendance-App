@@ -3,6 +3,7 @@ import api from './api';
 export interface Session {
   id: string;
   lecturerId: string;
+  courseId?: string | null;
   name: string;
   qrCode: string;
   latitude: number;
@@ -12,6 +13,11 @@ export interface Session {
   duration: number;
   status: 'ACTIVE' | 'ENDED' | 'EXPIRED';
   createdAt: string;
+  course?: {
+    id: string;
+    name: string;
+    code: string;
+  };
   lecturer?: {
     id: string;
     name: string;
@@ -31,6 +37,7 @@ export interface Attendance {
   latitude: number;
   longitude: number;
   distance: number;
+  type?: 'QR' | 'MANUAL' | 'EXCUSED';
   status: 'VALID' | 'INVALID' | 'OUT_OF_RANGE' | 'EXPIRED' | 'DUPLICATE';
   student: {
     id: string;
@@ -43,6 +50,7 @@ export interface CreateSessionData {
   name: string;
   latitude: number;
   longitude: number;
+  courseId?: string;
 }
 
 export interface CreateSessionResponse {
@@ -75,5 +83,8 @@ export const sessionService = {
     const response = await api.get<{ session: Session }>(`/sessions/${sessionId}`);
     return response.data;
   },
-};
 
+  async markManualAttendance(sessionId: string, studentId: string): Promise<void> {
+    await api.post(`/sessions/${sessionId}/attendance/manual`, { studentId });
+  }
+};

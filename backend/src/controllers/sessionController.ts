@@ -11,6 +11,7 @@ export const createSessionSchema = z.object({
     name: z.string().min(1, 'Session name is required'),
     latitude: z.number().min(-90).max(90),
     longitude: z.number().min(-180).max(180),
+    courseId: z.string().optional(),
   }),
 });
 
@@ -28,12 +29,13 @@ export async function createSession(req: AuthRequest, res: Response): Promise<vo
     throw new AppError(403, 'Only lecturers can create sessions');
   }
 
-  const { name, latitude, longitude } = req.body;
+  const { name, latitude, longitude, courseId } = req.body;
 
   // Create session
   const session = await prisma.session.create({
     data: {
       lecturerId: req.user.id,
+      courseId: courseId || null,
       name,
       latitude,
       longitude,
@@ -59,6 +61,7 @@ export async function createSession(req: AuthRequest, res: Response): Promise<vo
           email: true,
         },
       },
+      course: true,
     },
   });
 
@@ -172,6 +175,7 @@ export async function getLecturerSessions(req: AuthRequest, res: Response): Prom
           attendance: true,
         },
       },
+      course: true,
     },
     orderBy: {
       createdAt: 'desc',

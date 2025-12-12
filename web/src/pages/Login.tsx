@@ -10,6 +10,8 @@ import {
   Alert,
   Link,
   CircularProgress,
+  useTheme,
+  alpha,
 } from '@mui/material';
 import { useAuth } from '../hooks/useAuth';
 import { authService } from '../services/authService';
@@ -21,6 +23,7 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
+  const theme = useTheme();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -81,9 +84,9 @@ export default function Login() {
             p: 5,
             width: '100%',
             borderRadius: 4,
-            background: 'rgba(255, 255, 255, 0.7)',
+            background: alpha(theme.palette.background.paper, 0.8),
             backdropFilter: 'blur(20px)',
-            border: '1px solid rgba(255, 255, 255, 0.3)',
+            border: `1px solid ${theme.palette.divider}`,
           }}
         >
           <Box sx={{ mb: 4, textAlign: 'center' }}>
@@ -92,7 +95,9 @@ export default function Login() {
               component="h1"
               gutterBottom
               sx={{
-                background: 'linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%)',
+                background: theme.palette.mode === 'dark'
+                  ? 'linear-gradient(135deg, #58A6FF 0%, #BC8CFF 100%)'
+                  : 'linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%)',
                 backgroundClip: 'text',
                 textFillColor: 'transparent',
                 WebkitBackgroundClip: 'text',

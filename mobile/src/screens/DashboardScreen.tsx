@@ -1,42 +1,49 @@
-import React, { useEffect, useState } from 'react';
-import {
-  View,
-  StyleSheet,
-  ScrollView,
-  RefreshControl,
-} from 'react-native';
-import {
-  Card,
-  Text,
-  Button,
-  FAB,
-  ActivityIndicator,
-  List,
-  Divider,
-} from 'react-native-paper';
-import { format } from 'date-fns';
-import { useNavigation } from '@react-navigation/native';
+import React, { useState } from 'react';
+import { StyleSheet, View } from 'react-native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { FAB, useTheme } from 'react-native-paper';
 import { RootStackParamList } from '../navigation/AppNavigator';
 import { attendanceService } from '../services/attendanceService';
+import { storageService } from '../services/storageService';
 import { Attendance, User } from '../types';
+import DashboardHeader from '../components/DashboardHeader';
+import StatsOverview from '../components/StatsOverview';
+import AttendanceList from '../components/AttendanceList';
+import AttendanceDetailModal from '../components/AttendanceDetailModal';
+import { useSocket } from '../hooks/useSocket';
+import ReceiptSheet from '../components/ReceiptSheet';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 interface DashboardScreenProps {
   user: User;
   onLogout: () => void;
+  onUpdateUser: (user: User) => void;
+  route: any; // Add route prop type
 }
 
-export default function DashboardScreen({ user, onLogout }: DashboardScreenProps) {
+export default function DashboardScreen({ user, onLogout, onUpdateUser, route }: DashboardScreenProps) {
+  const theme = useTheme();
   const navigation = useNavigation<NavigationProp>();
   const [attendance, setAttendance] = useState<Attendance[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
+  // Modal states
+  const [selectedAttendance, setSelectedAttendance] = useState<Attendance | null>(null);
+  const [newReceipt, setNewReceipt] = useState<Attendance | null>(null);
+
+  // Archive state
+  const [archivedIds, setArchivedIds] = useState<string[]>([]);
+
   const loadAttendance = async () => {
     try {
-      const data = await attendanceService.getAttendanceHistory();
+      const [data, archived] = await Promise.all([
+        attendanceService.getAttendanceHistory(10), // Limit to 10 recent
+        storageService.getArchivedSessions(),
+      ]);
+      setArchivedIds(archived);
       setAttendance(data.attendance);
     } catch (error: any) {
       console.error('Failed to load attendance:', error);
@@ -46,119 +53,88 @@ export default function DashboardScreen({ user, onLogout }: DashboardScreenProps
     }
   };
 
-  useEffect(() => {
+  useFocusEffect(
+    React.useCallback(() => {
+      loadAttendance();
+    }, [])
+  );
+
+  // Check for new attendance passed from Scanner
+  useFocusEffect(
+    React.useCallback(() => {
+      if (route.params?.newAttendance) {
+        setNewReceipt(route.params.newAttendance);
+        // Clear param so it doesn't show again on simple focus
+        navigation.setParams({ newAttendance: undefined } as any);
+      }
+    }, [route.params])
+  );
+
+  // Listen for real-time updates
+  // We explicitly join the user's personal room to receive notification
+  // about manual attendance updates targeting this specific user.
+  useSocket(user ? `user:${user.id}` : null, (data) => {
+    // Refresh attendance when we receive an update
+    console.log('Received attendance update via socket', data);
     loadAttendance();
-  }, []);
+
+    // If it's a manual update, show the receipt!
+    if (data.attendance && data.attendance.type === 'MANUAL') {
+      setNewReceipt(data.attendance);
+    }
+  });
 
   const onRefresh = () => {
     setRefreshing(true);
     loadAttendance();
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'VALID':
-        return '#4caf50';
-      case 'OUT_OF_RANGE':
-        return '#ff9800';
-      case 'INVALID':
-      case 'EXPIRED':
-      case 'DUPLICATE':
-        return '#f44336';
-      default:
-        return '#757575';
-    }
+  const handleArchive = async (item: Attendance) => {
+    await storageService.archiveSession(item.id);
+    loadAttendance();
   };
 
+  const displayedAttendance = attendance.filter(a => !archivedIds.includes(a.id));
+
   return (
-    <View style={styles.container}>
-      <Card style={styles.headerCard}>
-        <Card.Content>
-          <Text variant="headlineSmall" style={styles.welcomeText}>
-            Welcome, {user.name}
-          </Text>
-          <Text variant="bodyMedium" style={styles.emailText}>
-            {user.email}
-          </Text>
-          <Button
-            mode="outlined"
-            onPress={onLogout}
-            style={styles.logoutButton}
-          >
-            Logout
-          </Button>
-        </Card.Content>
-      </Card>
+    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+      <DashboardHeader
+        user={user}
+        attendanceCount={attendance.length}
+        successCount={attendance.filter(a => a.status === 'VALID').length}
+        onLogout={onLogout}
+        onProfilePress={() => navigation.navigate('Main', { screen: 'Profile' })}
+        onArchivePress={() => navigation.navigate('Main', { screen: 'Archive' })}
+        onHistoryPress={() => navigation.navigate('FullHistory')}
+      />
 
-      <ScrollView
-        style={styles.scrollView}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }
-      >
-        <Text variant="titleLarge" style={styles.sectionTitle}>
-          Attendance History
-        </Text>
-
-        {loading ? (
-          <ActivityIndicator style={styles.loader} />
-        ) : attendance.length === 0 ? (
-          <Card style={styles.emptyCard}>
-            <Card.Content>
-              <Text variant="bodyLarge" style={styles.emptyText}>
-                No attendance records yet
-              </Text>
-              <Text variant="bodyMedium" style={styles.emptySubtext}>
-                Scan a QR code to mark your attendance
-              </Text>
-            </Card.Content>
-          </Card>
-        ) : (
-          attendance.map((item, index) => (
-            <Card key={item.id} style={styles.attendanceCard}>
-              <Card.Content>
-                <View style={styles.attendanceHeader}>
-                  <Text variant="titleMedium" style={styles.sessionName}>
-                    {item.session.name}
-                  </Text>
-                  <View
-                    style={[
-                      styles.statusBadge,
-                      { backgroundColor: getStatusColor(item.status) },
-                    ]}
-                  >
-                    <Text style={styles.statusText}>{item.status}</Text>
-                  </View>
-                </View>
-                <Divider style={styles.divider} />
-                <List.Item
-                  title="Scanned At"
-                  description={format(new Date(item.scannedAt), 'PPp')}
-                  left={(props) => <List.Icon {...props} icon="clock-outline" />}
-                />
-                <List.Item
-                  title="Distance"
-                  description={`${item.distance.toFixed(2)} meters`}
-                  left={(props) => <List.Icon {...props} icon="map-marker-distance" />}
-                />
-                {item.session.lecturer && (
-                  <List.Item
-                    title="Lecturer"
-                    description={item.session.lecturer.name}
-                    left={(props) => <List.Icon {...props} icon="account" />}
-                  />
-                )}
-              </Card.Content>
-            </Card>
-          ))
-        )}
-      </ScrollView>
+      <AttendanceList
+        attendance={displayedAttendance}
+        loading={loading}
+        refreshing={refreshing}
+        onRefresh={onRefresh}
+        onItemPress={setSelectedAttendance}
+        onArchive={handleArchive}
+      />
 
       <FAB
         icon="qrcode-scan"
         style={styles.fab}
+        color="#fff"
         onPress={() => navigation.navigate('Scanner')}
-        label="Scan QR Code"
+      />
+
+      {/* Interactive Modals */}
+      <AttendanceDetailModal
+        visible={!!selectedAttendance}
+        onDismiss={() => setSelectedAttendance(null)}
+        attendance={selectedAttendance}
+      />
+
+      <ReceiptSheet
+        visible={!!newReceipt}
+        onDismiss={() => setNewReceipt(null)}
+        attendance={newReceipt}
       />
     </View>
   );
@@ -167,79 +143,13 @@ export default function DashboardScreen({ user, onLogout }: DashboardScreenProps
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
-  },
-  headerCard: {
-    margin: 16,
-    elevation: 2,
-  },
-  welcomeText: {
-    fontWeight: 'bold',
-    marginBottom: 4,
-  },
-  emailText: {
-    color: '#666',
-    marginBottom: 12,
-  },
-  logoutButton: {
-    alignSelf: 'flex-start',
-  },
-  scrollView: {
-    flex: 1,
-  },
-  sectionTitle: {
-    marginHorizontal: 16,
-    marginBottom: 12,
-    fontWeight: 'bold',
-  },
-  loader: {
-    marginTop: 40,
-  },
-  emptyCard: {
-    margin: 16,
-    elevation: 2,
-  },
-  emptyText: {
-    textAlign: 'center',
-    marginBottom: 8,
-  },
-  emptySubtext: {
-    textAlign: 'center',
-    color: '#666',
-  },
-  attendanceCard: {
-    marginHorizontal: 16,
-    marginBottom: 12,
-    elevation: 2,
-  },
-  attendanceHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  sessionName: {
-    flex: 1,
-    fontWeight: 'bold',
-  },
-  statusBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  statusText: {
-    color: '#fff',
-    fontSize: 10,
-    fontWeight: 'bold',
-  },
-  divider: {
-    marginVertical: 8,
   },
   fab: {
     position: 'absolute',
     margin: 16,
     right: 0,
     bottom: 0,
+    backgroundColor: '#2196f3',
+    borderRadius: 16,
   },
 });
-

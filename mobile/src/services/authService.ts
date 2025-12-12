@@ -15,8 +15,17 @@ export const authService = {
     return response.data;
   },
 
+  async getToken(): Promise<string | null> {
+    return await AsyncStorage.getItem('accessToken');
+  },
+
   async register(data: RegisterData): Promise<LoginResponse> {
     const response = await api.post<LoginResponse>('/auth/register', data);
+    return response.data;
+  },
+
+  async updateProfile(studentId: string): Promise<{ user: User }> {
+    const response = await api.put<{ user: User }>('/auth/profile', { studentId });
     return response.data;
   },
 

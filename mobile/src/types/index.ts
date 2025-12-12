@@ -3,6 +3,7 @@ export interface User {
   email: string;
   name: string;
   role: 'STUDENT' | 'LECTURER' | 'ADMIN';
+  studentId?: string;
 }
 
 export interface Session {
@@ -22,6 +23,10 @@ export interface Session {
     name: string;
     email: string;
   };
+  course?: {
+    name: string;
+    code: string;
+  };
 }
 
 export interface Attendance {
@@ -31,8 +36,9 @@ export interface Attendance {
   scannedAt: string;
   latitude: number;
   longitude: number;
-  distance: number;
+  distance?: number;
   status: 'VALID' | 'INVALID' | 'OUT_OF_RANGE' | 'EXPIRED' | 'DUPLICATE';
+  type?: 'QR' | 'MANUAL' | 'EXCUSED';
   session: Session;
   student: User;
 }
@@ -48,4 +54,3 @@ export interface RegisterData {
   name: string;
   role?: 'STUDENT' | 'LECTURER';
 }
-

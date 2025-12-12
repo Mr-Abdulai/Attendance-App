@@ -3,6 +3,7 @@ import * as Location from 'expo-location';
 export interface LocationData {
   latitude: number;
   longitude: number;
+  accuracy?: number | null;
 }
 
 export const locationService = {
@@ -24,12 +25,13 @@ export const locationService = {
       }
 
       const location = await Location.getCurrentPositionAsync({
-        accuracy: Location.Accuracy.High,
+        accuracy: Location.Accuracy.BestForNavigation,
       });
 
       return {
         latitude: location.coords.latitude,
         longitude: location.coords.longitude,
+        accuracy: location.coords.accuracy,
       };
     } catch (error) {
       throw new Error('Failed to get location: ' + (error as Error).message);

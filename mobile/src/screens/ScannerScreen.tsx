@@ -16,6 +16,7 @@ import Toast from 'react-native-toast-message';
 import { useNavigation, useIsFocused } from '@react-navigation/native';
 import { attendanceService } from '../services/attendanceService';
 import { locationService } from '../services/locationService';
+import { Attendance } from '../types';
 
 const { width, height } = Dimensions.get('window');
 
@@ -25,12 +26,14 @@ export default function ScannerScreen() {
   const [permission, requestPermission] = useCameraPermissions();
   const [scanned, setScanned] = useState(false);
   const [processing, setProcessing] = useState(false);
+  const [receiptData, setReceiptData] = useState<Attendance | null>(null);
 
   // Reset scanner when screen is focused
   useEffect(() => {
     if (isFocused) {
       setScanned(false);
       setProcessing(false);
+      setReceiptData(null);
     }
   }, [isFocused]);
 
@@ -40,7 +43,7 @@ export default function ScannerScreen() {
     }
   }, [permission]);
 
-  const [cachedLocation, setCachedLocation] = useState<{ latitude: number; longitude: number; timestamp: number } | null>(null);
+  const [cachedLocation, setCachedLocation] = useState<{ latitude: number; longitude: number; accuracy?: number | null; timestamp: number } | null>(null);
 
   // Prefetch location when permission is granted
   useEffect(() => {
@@ -56,7 +59,7 @@ export default function ScannerScreen() {
             setCachedLocation({ ...location, timestamp: Date.now() });
             console.log('📍 Location prefetched:', location);
 
-            // Update every 30 seconds
+            // Update every 10 seconds (faster)
             locationInterval = setInterval(async () => {
               try {
                 const newLocation = await locationService.getCurrentLocation();
@@ -65,7 +68,7 @@ export default function ScannerScreen() {
               } catch (err) {
                 console.log('Failed to update background location');
               }
-            }, 30000);
+            }, 10000);
           }
         } catch (error) {
           console.log('Failed to prefetch location:', error);
@@ -88,7 +91,7 @@ export default function ScannerScreen() {
 
     try {
       let location = cachedLocation;
-      const isLocationFresh = location && (Date.now() - location.timestamp < 60000); // 1 minute freshness
+      const isLocationFresh = location && (Date.now() - location.timestamp < 120000); // 2 minutes freshness (more aggressive)
 
       if (!isLocationFresh) {
         console.log('⚠️ Cached location stale or missing, fetching fresh...');
@@ -125,18 +128,31 @@ export default function ScannerScreen() {
         longitude: location.longitude,
       });
 
-      Toast.show({
-        type: 'success',
-        text1: 'Success!',
-        text2: response.message || 'Attendance marked successfully',
-        visibilityTime: 3000,
+      setReceiptData(response.attendance);
+
+      // Navigate immediately to Dashboard with the new receipt
+      navigation.navigate('Main', {
+        screen: 'Home',
+        params: {
+          screen: 'Dashboard',
+          params: { newAttendance: response.attendance }
+        }
       });
 
-      // Navigate back after a short delay
-      setTimeout(() => {
-        navigation.goBack();
-      }, 2000);
     } catch (error: any) {
+      // ... catch logic ...
+      // Handle duplicate attendance gracefully
+      if (error.response?.status === 409 || (error.message && error.message.includes('already marked'))) {
+        Toast.show({
+          type: 'info',
+          text1: 'Already Checked In',
+          text2: 'You have already marked attendance for this session.',
+          visibilityTime: 3000,
+        });
+        navigation.goBack();
+        return;
+      }
+
       const errorMessage =
         error.response?.data?.error ||
         error.response?.data?.message ||
@@ -147,10 +163,10 @@ export default function ScannerScreen() {
         type: 'error',
         text1: 'Error',
         text2: errorMessage,
-        visibilityTime: 4000,
+        visibilityTime: 6000,
       });
 
-      setScanned(false);
+      setScanned(true);
     } finally {
       setProcessing(false);
     }
@@ -218,6 +234,11 @@ export default function ScannerScreen() {
               <Text variant="bodyLarge" style={styles.instructionText}>
                 Position the QR code within the frame
               </Text>
+              {cachedLocation?.accuracy && (
+                <Text variant="bodySmall" style={{ color: cachedLocation.accuracy < 20 ? '#4caf50' : '#ff9800', textAlign: 'center', marginTop: 4 }}>
+                  GPS Accuracy: ±{Math.round(cachedLocation.accuracy)}m
+                </Text>
+              )}
               {processing && (
                 <View style={styles.processingContainer}>
                   <ActivityIndicator size="small" style={styles.processingIndicator} />
@@ -229,7 +250,20 @@ export default function ScannerScreen() {
         </View>
       </CameraView>
 
-      {scanned && !processing && (
+      {/* Manual Scan Again Button (Only if failed or dismissed receipt) */}
+      {scanned && !processing && !receiptData && (
+        <View style={styles.buttonContainer}>
+          <Button
+            mode="contained"
+            onPress={() => setScanned(false)}
+            style={styles.scanAgainButton}
+          >
+            Scan Again
+          </Button>
+        </View>
+      )}
+
+      {scanned && !processing && !receiptData && (
         <View style={styles.buttonContainer}>
           <Button
             mode="contained"

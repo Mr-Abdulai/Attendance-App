@@ -75,7 +75,7 @@ export async function markAttendance(req: AuthRequest, res: Response): Promise<v
   });
 
   if (existingAttendance) {
-    throw new AppError(400, 'You have already marked attendance for this session');
+    throw new AppError(409, 'You have already marked attendance for this session');
   }
 
   // Verify location
@@ -169,6 +169,7 @@ export async function getStudentAttendance(req: AuthRequest, res: Response): Pro
               email: true,
             },
           },
+          course: true,
         },
       },
     },
@@ -196,3 +197,84 @@ export async function getStudentAttendance(req: AuthRequest, res: Response): Pro
   });
 }
 
+// ... existing imports ...
+
+/**
+ * Manually mark attendance for a student (Lecturer only)
+ */
+export async function markManualAttendance(
+  req: AuthRequest,
+  res: Response
+): Promise<void> {
+  const { sessionId } = req.params;
+  const { studentId } = req.body; // This is the Unique ID (e.g. S12345), NOT the database UUID
+
+  if (!studentId) {
+    throw new AppError(400, 'Student ID is required');
+  }
+
+  // 1. Find the student by their User.studentId
+  const student = await prisma.user.findUnique({
+    where: { studentId },
+  });
+
+  if (!student) {
+    throw new AppError(404, 'Student ID not found');
+  }
+
+  // 2. Check if session exists
+  const session = await prisma.session.findUnique({
+    where: { id: sessionId },
+  });
+
+  if (!session) {
+    throw new AppError(404, 'Session not found');
+  }
+
+  // 3. Mark attendance
+  // We use upsert to avoid duplicate errors if they try again, or just create.
+  // Requirement: "Student is manually added... specific tag"
+  try {
+    const attendance = await prisma.attendance.create({
+      data: {
+        sessionId,
+        studentId: student.id, // Database UUID
+        latitude: 0, // Manual entry has no location
+        longitude: 0,
+        distance: 0,
+        status: 'VALID',
+        type: 'MANUAL',
+      },
+      include: {
+        student: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            studentId: true,
+          }
+        }
+      }
+    });
+
+    // Emit socket event to student
+    // We emit to specific user channel so they get the update
+    io.to(`user:${student.id}`).emit('attendance-update', {
+      attendance: {
+        ...attendance,
+        student: attendance.student,
+      },
+    });
+
+    res.status(201).json({
+      message: 'Student manually added successfully',
+      attendance
+    });
+  } catch (error: any) {
+    // Handle unique constraint violation (P2002)
+    if (error.code === 'P2002') {
+      throw new AppError(409, 'Student is already marked present for this session');
+    }
+    throw error;
+  }
+}

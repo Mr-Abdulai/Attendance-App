@@ -15,17 +15,26 @@ import {
   Chip,
   IconButton,
   Alert,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
+  Tooltip,
+  Snackbar,
+  AlertColor,
 } from '@mui/material';
 import {
   ArrowBack as ArrowBackIcon,
   Download as DownloadIcon,
-  Refresh as RefreshIcon,
+  PersonAdd as PersonAddIcon,
 } from '@mui/icons-material';
 import { format } from 'date-fns';
 import { useAuth } from '../hooks/useAuth';
 import { sessionService, Session, Attendance } from '../services/sessionService';
 import { useSocket } from '../hooks/useSocket';
 import { QRCodeSVG } from 'qrcode.react';
+import SessionTimer from '../components/SessionTimer';
 
 export default function SessionDetail() {
   const { id } = useParams<{ id: string }>();
@@ -34,6 +43,13 @@ export default function SessionDetail() {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+
+  // Manual Attendance State
+  const [manualDialogOpen, setManualDialogOpen] = useState(false);
+  const [manualStudentId, setManualStudentId] = useState('');
+  const [manualLoading, setManualLoading] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [snackbarSeverity, setSnackbarSeverity] = useState<AlertColor>('success');
 
   const loadSession = async () => {
     if (!id) return;
@@ -67,7 +83,7 @@ export default function SessionDetail() {
     if (!session || !session.attendance) return;
 
     const csvContent = [
-      ['Student Name', 'Email', 'Scanned At', 'Distance (m)', 'Status'].join(','),
+      ['Student Name', 'Email', 'Scanned At', 'Distance (m)', 'Status', 'Type'].join(','),
       ...session.attendance.map((att) =>
         [
           att.student.name,
@@ -75,6 +91,7 @@ export default function SessionDetail() {
           format(new Date(att.scannedAt), 'PPp'),
           att.distance.toFixed(2),
           att.status,
+          att.type || 'QR',
         ].join(',')
       ),
     ].join('\n');
@@ -98,6 +115,25 @@ export default function SessionDetail() {
       loadSession();
     } catch (err: any) {
       setError(err.response?.data?.error || 'Failed to end session');
+    }
+  };
+
+  const handleManualSubmit = async () => {
+    if (!id || !manualStudentId.trim()) return;
+
+    setManualLoading(true);
+    try {
+      await sessionService.markManualAttendance(id, manualStudentId.trim());
+      setManualDialogOpen(false);
+      setManualStudentId('');
+      loadSession(); // Reload to show new student
+      setSnackbarMessage('Student added successfully');
+      setSnackbarSeverity('success');
+    } catch (err: any) {
+      setSnackbarMessage(err.response?.data?.error || 'Failed to add student');
+      setSnackbarSeverity('error');
+    } finally {
+      setManualLoading(false);
     }
   };
 
@@ -131,9 +167,10 @@ export default function SessionDetail() {
       case 'OUT_OF_RANGE':
         return 'warning';
       case 'INVALID':
-      case 'EXPIRED':
       case 'DUPLICATE':
         return 'error';
+      case 'EXPIRED':
+        return 'default';
       default:
         return 'default';
     }
@@ -147,14 +184,24 @@ export default function SessionDetail() {
         </Button>
         <Box>
           {session.status === 'ACTIVE' && (
-            <Button
-              variant="outlined"
-              color="error"
-              onClick={handleEndSession}
-              sx={{ mr: 2 }}
-            >
-              End Session
-            </Button>
+            <>
+              <Button
+                variant="contained"
+                startIcon={<PersonAddIcon />}
+                onClick={() => setManualDialogOpen(true)}
+                sx={{ mr: 2 }}
+              >
+                Manual Entry
+              </Button>
+              <Button
+                variant="outlined"
+                color="error"
+                onClick={handleEndSession}
+                sx={{ mr: 2 }}
+              >
+                End Session
+              </Button>
+            </>
           )}
           {session.attendance && session.attendance.length > 0 && (
             <Button
@@ -182,9 +229,20 @@ export default function SessionDetail() {
                 Ended: {format(new Date(session.endTime), 'PPp')}
               </Typography>
             )}
+            {session.status === 'ACTIVE' && (
+              <SessionTimer
+                startTime={session.startTime}
+                duration={session.duration}
+                onExpire={() => {
+                  setSnackbarMessage('Session time has expired');
+                  setSnackbarSeverity('info');
+                  loadSession(); // Reload to update status and hide buttons
+                }}
+              />
+            )}
           </Box>
           <Chip
-            label={session.status}
+            label={session.status === 'EXPIRED' ? 'ENDED' : session.status}
             color={getStatusColor(session.status) as any}
             size="medium"
           />
@@ -216,8 +274,8 @@ export default function SessionDetail() {
               <TableRow>
                 <TableCell>Student Name</TableCell>
                 <TableCell>Email</TableCell>
-                <TableCell>Scanned At</TableCell>
-                <TableCell>Distance (m)</TableCell>
+                <TableCell>Time</TableCell>
+                <TableCell>Method</TableCell>
                 <TableCell>Status</TableCell>
               </TableRow>
             </TableHead>
@@ -227,7 +285,13 @@ export default function SessionDetail() {
                   <TableCell>{att.student.name}</TableCell>
                   <TableCell>{att.student.email}</TableCell>
                   <TableCell>{format(new Date(att.scannedAt), 'PPp')}</TableCell>
-                  <TableCell>{att.distance.toFixed(2)}</TableCell>
+                  <TableCell>
+                    {att.type === 'MANUAL' ? (
+                      <Chip label="Manual" size="small" color="primary" variant="outlined" />
+                    ) : (
+                      <Chip label="QR Scan" size="small" variant="outlined" />
+                    )}
+                  </TableCell>
                   <TableCell>
                     <Chip
                       label={att.status}
@@ -250,7 +314,38 @@ export default function SessionDetail() {
           </Typography>
         </Paper>
       )}
+
+      <Dialog open={manualDialogOpen} onClose={() => setManualDialogOpen(false)}>
+        <DialogTitle>Manually Add Student</DialogTitle>
+        <DialogContent>
+          <Typography variant="body2" color="text.secondary" paragraph sx={{ mt: 1 }}>
+            Enter the student's unique ID (e.g. <b>s12345</b>) to mark them as present.
+          </Typography>
+          <TextField
+            autoFocus
+            margin="dense"
+            label="Student ID"
+            placeholder="s..."
+            type="text"
+            fullWidth
+            variant="outlined"
+            value={manualStudentId}
+            onChange={(e) => setManualStudentId(e.target.value)}
+          />
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button onClick={() => setManualDialogOpen(false)}>Cancel</Button>
+          <Button onClick={handleManualSubmit} disabled={manualLoading} variant="contained">
+            {manualLoading ? 'Adding...' : 'Add Student'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Snackbar open={!!snackbarMessage} autoHideDuration={6000} onClose={() => setSnackbarMessage('')}>
+        <Alert onClose={() => setSnackbarMessage('')} severity={snackbarSeverity} sx={{ width: '100%' }}>
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
     </Container>
   );
 }
-
