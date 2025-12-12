@@ -22,6 +22,13 @@
   "license": "ISC",
   "dependencies": {
     "@prisma/client": "^5.7.1",
+    "@types/bcrypt": "^5.0.2",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.21",
+    "@types/helmet": "0.0.48",
+    "@types/jsonwebtoken": "^9.0.5",
+    "@types/node": "^20.10.5",
+    "@types/qrcode": "^1.5.5",
     "abbrev": "4.0.0",
     "are-we-there-yet": "4.0.2",
     "bcrypt": "^5.1.1",
@@ -37,14 +44,7 @@
     "zod": "^3.22.4"
   },
   "devDependencies": {
-    "@types/bcrypt": "^5.0.2",
-    "@types/cors": "^2.8.17",
-    "@types/express": "^4.17.21",
-    "@types/helmet": "0.0.48",
     "@types/jest": "30.0.0",
-    "@types/jsonwebtoken": "^9.0.5",
-    "@types/node": "^20.10.5",
-    "@types/qrcode": "^1.5.5",
     "@typescript-eslint/eslint-plugin": "8.49.0",
     "@typescript-eslint/parser": "8.49.0",
     "eslint": "9.39.1",
