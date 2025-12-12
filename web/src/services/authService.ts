@@ -28,10 +28,10 @@ export interface LoginData {
 
 export const authService = {
   async login(data: LoginData): Promise<LoginResponse> {
-    console.log('Calling login API with:', data);
+
     try {
       const response = await api.post<LoginResponse>('/auth/login', data);
-      console.log('Login API response:', response);
+
       return response.data;
     } catch (error: any) {
       console.error('Login API error:', error);

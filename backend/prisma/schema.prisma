@@ -72,6 +72,8 @@ model Session {
   course     Course?      @relation(fields: [courseId], references: [id], onDelete: SetNull) // Option A (Keep session if course deleted)
   attendance Attendance[]
 
+  @@index([lecturerId])
+  @@index([courseId])
   @@map("sessions")
 }
 
@@ -98,6 +100,8 @@ model Attendance {
   student User    @relation(fields: [studentId], references: [id], onDelete: Cascade)
 
   @@unique([sessionId, studentId])
+  @@index([sessionId])
+  @@index([studentId])
   @@map("attendance")
 }
 

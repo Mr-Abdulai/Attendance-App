@@ -3,8 +3,7 @@ import axios from 'axios';
 // Use direct URL to avoid proxy issues
 const API_BASE_URL = 'http://127.0.0.1:5000/api';
 
-console.log('API Base URL:', API_BASE_URL);
-console.log('Environment:', import.meta.env.MODE);
+
 
 const api = axios.create({
   baseURL: API_BASE_URL,

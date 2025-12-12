@@ -32,9 +32,9 @@ export default function Login() {
     setLoading(true);
 
     try {
-      console.log('Attempting login with:', { email });
+
       const response = await authService.login({ email, password });
-      console.log('Login response:', response);
+
 
       if (response.user.role !== 'LECTURER') {
         setError('Only lecturers can access this portal');

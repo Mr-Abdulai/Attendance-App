@@ -78,11 +78,11 @@ export default function CreateSession() {
     // Pre-fetch location
     getLocation()
       .then((pos) => {
-        console.log('📍 Location pre-fetched successfully', pos);
+
         setCachedPosition(pos);
       })
       .catch((err) => {
-        console.log('⚠️ Location pre-fetch failed, will try again on submit', err);
+
       });
   }, []);
 
@@ -157,12 +157,7 @@ export default function CreateSession() {
       const position = cachedPosition || await getLocation();
       const { latitude, longitude } = position.coords;
 
-      console.log('📍 Lecturer location obtained:', {
-        latitude,
-        longitude,
-        accuracy: position.coords.accuracy,
-        timestamp: new Date(position.timestamp).toISOString()
-      });
+
 
       const response = await sessionService.createSession({
         name: name.trim(),

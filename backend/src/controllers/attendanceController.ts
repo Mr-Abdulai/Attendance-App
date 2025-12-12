@@ -83,11 +83,7 @@ export async function markAttendance(req: AuthRequest, res: Response): Promise<v
   // In production with real GPS devices, change this to 10 meters
   const maxDistance = process.env.NODE_ENV === 'development' ? 20000 : 10;
 
-  console.log('Location verification:', {
-    student: { latitude, longitude },
-    lecturer: { latitude: session.latitude, longitude: session.longitude },
-    maxDistance,
-  });
+
 
   const locationCheck = verifyLocation(
     { latitude, longitude },
@@ -95,7 +91,7 @@ export async function markAttendance(req: AuthRequest, res: Response): Promise<v
     maxDistance
   );
 
-  console.log('Distance calculated:', locationCheck.distance, 'meters', '| Valid:', locationCheck.isValid);
+
 
   // Check location BEFORE creating attendance record
   if (!locationCheck.isValid) {

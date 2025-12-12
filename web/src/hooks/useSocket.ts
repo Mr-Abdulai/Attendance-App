@@ -2,7 +2,10 @@ import { useEffect, useRef } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { useAuth } from './useAuth';
 
-const SOCKET_URL = import.meta.env.VITE_API_BASE_URL?.replace('/api', '') || 'http://localhost:5000';
+// Auto-detect production protocol
+const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
+const BASE_URL = API_URL.replace('/api', '');
+const SOCKET_URL = BASE_URL.replace(/^http/, 'ws'); // http -> ws, https -> wss
 
 export function useSocket(sessionId: string | null, onAttendanceUpdate: (data: any) => void) {
   const { user } = useAuth();
@@ -24,7 +27,7 @@ export function useSocket(sessionId: string | null, onAttendanceUpdate: (data: a
     socketRef.current = socket;
 
     socket.on('connect', () => {
-      console.log('Socket connected');
+
       socket.emit('join-session', sessionId);
     });
 
@@ -33,7 +36,7 @@ export function useSocket(sessionId: string | null, onAttendanceUpdate: (data: a
     });
 
     socket.on('disconnect', () => {
-      console.log('Socket disconnected');
+
     });
 
     return () => {

@@ -57,21 +57,21 @@ export default function ScannerScreen() {
           if (hasPermission) {
             const location = await locationService.getCurrentLocation();
             setCachedLocation({ ...location, timestamp: Date.now() });
-            console.log('📍 Location prefetched:', location);
+            setCachedLocation({ ...location, timestamp: Date.now() });
 
             // Update every 10 seconds (faster)
             locationInterval = setInterval(async () => {
               try {
                 const newLocation = await locationService.getCurrentLocation();
                 setCachedLocation({ ...newLocation, timestamp: Date.now() });
-                console.log('📍 Location updated:', newLocation);
+                setCachedLocation({ ...newLocation, timestamp: Date.now() });
               } catch (err) {
-                console.log('Failed to update background location');
+
               }
             }, 10000);
           }
         } catch (error) {
-          console.log('Failed to prefetch location:', error);
+          // Silent fail for prefetch
         }
       }
     };
@@ -94,7 +94,7 @@ export default function ScannerScreen() {
       const isLocationFresh = location && (Date.now() - location.timestamp < 120000); // 2 minutes freshness (more aggressive)
 
       if (!isLocationFresh) {
-        console.log('⚠️ Cached location stale or missing, fetching fresh...');
+
         // Request location permission and get current location
         const hasLocationPermission = await locationService.requestPermissions();
         if (!hasLocationPermission) {
@@ -110,16 +110,12 @@ export default function ScannerScreen() {
         const freshLocation = await locationService.getCurrentLocation();
         location = { ...freshLocation, timestamp: Date.now() };
       } else {
-        console.log('⚡ Using cached location');
+
       }
 
       if (!location) throw new Error('Could not obtain location');
 
-      console.log('📱 Student location used:', {
-        latitude: location.latitude,
-        longitude: location.longitude,
-        source: isLocationFresh ? 'cache' : 'fresh',
-      });
+
 
       // Mark attendance
       const response = await attendanceService.markAttendance({

@@ -75,7 +75,7 @@ export default function DashboardScreen({ user, onLogout, onUpdateUser, route }:
   // about manual attendance updates targeting this specific user.
   useSocket(user ? `user:${user.id}` : null, (data) => {
     // Refresh attendance when we receive an update
-    console.log('Received attendance update via socket', data);
+    // Refresh attendance when we receive an update
     loadAttendance();
 
     // If it's a manual update, show the receipt!
@@ -104,8 +104,8 @@ export default function DashboardScreen({ user, onLogout, onUpdateUser, route }:
         successCount={attendance.filter(a => a.status === 'VALID').length}
         onLogout={onLogout}
         onProfilePress={() => navigation.navigate('Main', { screen: 'Profile' })}
-        onArchivePress={() => navigation.navigate('Main', { screen: 'Archive' })}
-        onHistoryPress={() => navigation.navigate('FullHistory')}
+        onArchivePress={() => navigation.navigate('Main', { screen: 'Archive', params: { filter: 'archived' } })}
+        onHistoryPress={() => navigation.navigate('FullHistory', { filter: 'all' })}
       />
 
       <AttendanceList

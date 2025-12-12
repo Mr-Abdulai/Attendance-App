@@ -15,8 +15,13 @@ import { Ionicons } from '@expo/vector-icons'; // Assuming Expo, or use react-na
 
 import { NavigatorScreenParams } from '@react-navigation/native';
 
+// Define Dashboard Stack params
+export type DashboardStackParamList = {
+  Dashboard: { newAttendance?: any } | undefined;
+};
+
 export type MainTabParamList = {
-  Home: undefined;
+  Home: NavigatorScreenParams<DashboardStackParamList>;
   Archive: { filter: string };
   Profile: undefined;
 };
@@ -36,7 +41,7 @@ const Tab = createBottomTabNavigator<MainTabParamList>();
 // --- Home Stack (Dashboard) ---
 // We keep Dashboard in a stack in case we simple push navigation later,
 // but usually it's just the DashboardScreen.
-const DashboardStack = createNativeStackNavigator();
+const DashboardStack = createNativeStackNavigator<DashboardStackParamList>();
 function HomeStackNavigator({ user, onUpdateUser, onLogout }: any) {
   return (
     <DashboardStack.Navigator screenOptions={{ headerShown: false }}>

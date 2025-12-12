@@ -45,18 +45,18 @@ export function initializeSocket(server: HTTPServer): SocketIOServer {
   });
 
   io.on('connection', (socket) => {
-    console.log(`User connected: ${socket.data.user.email}`);
+
 
     // Join lecturer room to receive attendance updates
     if (socket.data.user.role === 'LECTURER') {
       socket.on('join-session', async (sessionId: string) => {
         socket.join(`session:${sessionId}`);
-        console.log(`Lecturer ${socket.data.user.email} joined session ${sessionId}`);
+
       });
 
       socket.on('leave-session', (sessionId: string) => {
         socket.leave(`session:${sessionId}`);
-        console.log(`Lecturer ${socket.data.user.email} left session ${sessionId}`);
+
       });
     }
 
@@ -65,7 +65,7 @@ export function initializeSocket(server: HTTPServer): SocketIOServer {
       // Security check: ensure user can only join their own room
       if (roomId === `user:${socket.data.user.id}`) {
         socket.join(roomId);
-        console.log(`User ${socket.data.user.email} joined room ${roomId}`);
+
       } else {
         console.warn(`User ${socket.data.user.email} attempted to join unauthorized room ${roomId}`);
       }
@@ -73,11 +73,12 @@ export function initializeSocket(server: HTTPServer): SocketIOServer {
 
     socket.on('leave-room', (roomId: string) => {
       socket.leave(roomId);
-      console.log(`User ${socket.data.user.email} left room ${roomId}`);
+
+
     });
 
     socket.on('disconnect', () => {
-      console.log(`User disconnected: ${socket.data.user.email}`);
+
     });
   });
 
