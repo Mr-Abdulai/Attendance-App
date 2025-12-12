@@ -70,9 +70,7 @@
       }
     },
     "owner": "mrabdulai",
-    "runtimeVersion": {
-      "policy": "appVersion"
-    },
+    "runtimeVersion": "1.0.0",
     "updates": {
       "url": "https://u.expo.dev/9b3ce9d0-bcc5-4d8c-a69b-f119901ad0f3"
     }
