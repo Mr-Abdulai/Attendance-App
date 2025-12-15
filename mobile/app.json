@@ -62,7 +62,8 @@
           },
           "ios": {}
         }
-      ]
+      ],
+      "./plugins/withAndroidPatch"
     ],
     "extra": {
       "apiUrl": "https://attendance-api-htat.onrender.com/api",
