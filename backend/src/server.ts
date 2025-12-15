@@ -55,8 +55,20 @@ app.use('/api/auth', authLimiter);
 app.use('/api', apiLimiter);
 
 // Health check
-app.get('/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+// Root route (Welcome message)
+app.get('/', (req, res) => {
+  res.json({
+    message: 'Mobile Attendance API is running',
+    version: '1.0.0',
+    timestamp: new Date().toISOString(),
+    endpoints: {
+      health: '/health',
+      docs: '/api-docs (if enabled)'
+    }
+  });
 });
 
 // API Routes
