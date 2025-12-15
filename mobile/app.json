@@ -34,8 +34,7 @@
         "ACCESS_COARSE_LOCATION",
         "RECORD_AUDIO"
       ],
-      "usesCleartextTraffic": true,
-      "kotlinVersion": "2.0.0"
+      "usesCleartextTraffic": true
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -51,6 +50,14 @@
         "expo-location",
         {
           "locationAlwaysAndWhenInUsePermission": "Allow $(PRODUCT_NAME) to use your location to verify attendance."
+        }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "kotlinVersion": "2.0.0"
+          }
         }
       ]
     ],
