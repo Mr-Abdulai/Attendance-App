@@ -58,7 +58,13 @@
           "android": {
             "kotlinVersion": "2.0.0",
             "enableProguardInReleaseBuilds": false,
-            "enableShrinkResourcesInReleaseBuilds": false
+            "enableShrinkResourcesInReleaseBuilds": false,
+            "newArchEnabled": false,
+            "gradleDaemonJvmArgs": [
+              "-Xmx3g",
+              "-Dorg.gradle.daemon=true",
+              "-Dorg.gradle.jvmargs=-Xmx3g -XX:MaxMetaspaceSize=512m"
+            ]
           },
           "ios": {}
         }
