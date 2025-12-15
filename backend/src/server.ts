@@ -55,7 +55,9 @@ app.use('/api/auth', authLimiter);
 app.use('/api', apiLimiter);
 
 // Health check
-res.json({ status: 'ok', timestamp: new Date().toISOString() });
+// Health check
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
 // Root route (Welcome message)
