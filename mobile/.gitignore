@@ -8,3 +8,7 @@ dist/
 .vscode/
 .idea/
 
+
+# Managed Workflow
+/android
+/ios
