@@ -34,7 +34,8 @@
         "ACCESS_COARSE_LOCATION",
         "RECORD_AUDIO"
       ],
-      "usesCleartextTraffic": true
+      "usesCleartextTraffic": true,
+      "kotlinVersion": "2.0.0"
     },
     "web": {
       "favicon": "./assets/favicon.png"
