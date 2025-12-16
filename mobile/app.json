@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "Attendance App",
-    "slug": "attendance-mobile",
+    "slug": "attendanceapp",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -83,7 +83,7 @@
         "projectId": "49745865-d9c8-4256-b14e-b7935d0d09d3"
       }
     },
-    "owner": "Mrabdulai_12",
+    "owner": "mrabdulai12s-organization",
     "runtimeVersion": "1.0.0",
     "updates": {
       "url": "https://u.expo.dev/49745865-d9c8-4256-b14e-b7935d0d09d3"
