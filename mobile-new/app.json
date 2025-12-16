@@ -1,10 +1,11 @@
 {
     "expo": {
         "name": "Attendance App",
-        "slug": "attendance-mobile",
+        "slug": "attendanceapp",
         "version": "1.0.0",
         "orientation": "portrait",
         "icon": "./assets/icon.png",
+        "owner": "mrabdulai12s-organization",
         "userInterfaceStyle": "light",
         "splash": {
             "image": "./assets/splash.jpg",
@@ -35,11 +36,7 @@
                 "CAMERA",
                 "ACCESS_FINE_LOCATION",
                 "ACCESS_COARSE_LOCATION",
-                "RECORD_AUDIO",
-                "android.permission.CAMERA",
-                "android.permission.RECORD_AUDIO",
-                "android.permission.ACCESS_COARSE_LOCATION",
-                "android.permission.ACCESS_FINE_LOCATION"
+                "RECORD_AUDIO"
             ]
         },
         "web": {
@@ -75,8 +72,14 @@
             "expo-font"
         ],
         "extra": {
-            "apiUrl": "https://attendance-api-htat.onrender.com/api"
+            "apiUrl": "https://attendance-api-htat.onrender.com/api",
+            "eas": {
+                "projectId": "49745865-d9c8-4256-b14e-b7935d0d09d3"
+            }
         },
-        "runtimeVersion": "1.0.0"
+        "runtimeVersion": "1.0.0",
+        "updates": {
+            "url": "https://u.expo.dev/49745865-d9c8-4256-b14e-b7935d0d09d3"
+        }
     }
 }
